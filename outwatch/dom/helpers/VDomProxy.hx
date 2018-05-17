@@ -69,10 +69,10 @@ class VDomProxy {
         }
         if (Std.is(emitter, StringEventEmitter)) {
             var se:StringEventEmitter = cast emitter;
-            return function(e:Event) return se.sink.on_next(cast(e.target, InputElement).value);
+            return function(e:Event) return se.sink.on_next(Std.string(cast(e.target, InputElement).value));
         }if (Std.is(emitter, BoolEventEmitter)) {
             var be:BoolEventEmitter = cast emitter;
-            return function(e:Event) return be.sink.on_next(cast(e.target, InputElement).checked);
+            return function(e:Event) return be.sink.on_next( cast(e.target, InputElement).checked);
         }
         if (Std.is(emitter, NumberEventEmitter)) {
             var ne:NumberEventEmitter = cast emitter;

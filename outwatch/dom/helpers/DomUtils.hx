@@ -119,7 +119,7 @@ class DomUtils {
             })
             .observer(function(tuple:VNodeProxy) {
                 trace("createInsertHook attributeReceivers");
-                PatchDom.patchDom(proxy.elm, tuple);
+                PatchDom.patch(proxy, tuple);
             });
             subscriptionPromise.last(Binary.create(subscription,subscription2));
         }
@@ -140,7 +140,7 @@ class DomUtils {
 
     static public function seperateModifiers(args:Array<VDomModifier>) {
         var __seperateModifiers:SeperateModifiers = {
-            emitters:cast args.filter(function(a)return Std.is(a, Emitter)),
+            emitters:cast args.filter(function(a)return Reflect.hasField(a, "eventType")),
             childReceivers:cast args.filter(function(a)return Std.is(a, ChildStreamReceiver)),
             childrenReceivers:cast args.filter(function(a)return Std.is(a, ChildrenStreamReceiver)),
             attributes:cast args.filter(function(a)return Std.is(a, Attribute)),

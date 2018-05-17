@@ -4,7 +4,6 @@ import snabbdom.dom.VirtualNodeDom;
 import snabbdom.VirtualNodes;
 import js.html.Element;
 import js.html.InputElement;
-import snabbdom.dom.CacheDom;
 import snabbdom.dom.Hooks.HookApi;
 import snabbdom.dom.PatchDom;
 import snabbdom.VirtualNodeData;
@@ -24,8 +23,7 @@ class DataObject {
         skip_styles:true,
         skip_attributes:false,
         key:null,
-        ns:{},
-        ___cache:0
+        ns:null
         };
     }
 
@@ -44,8 +42,7 @@ class DataObject {
             skip_styles:true,
             skip_attributes:false,
             key:null,
-            ns:{},
-            ___cache:0
+            ns:null
         };
     }
     public static function updateHook(old: VNodeProxy, node: VNodeProxy) {
@@ -74,8 +71,7 @@ class DataObject {
             skip_styles:true,
             skip_attributes:false,
             key:null,
-            ns:{},
-            ___cache:0
+            ns:null
         };
     }
 
@@ -95,8 +91,7 @@ class DataObject {
         skip_styles:data.skip_styles,
         skip_attributes:data.skip_attributes,
         key:data.key,
-        ns:data.ns,
-        ___cache:data.___cache
+        ns:data.ns
         };
     }
 

@@ -61,6 +61,7 @@ class StringNode extends VNode {
         }
     }
 }
+@:generic
 class Emitter<T> extends VDomModifier {
     public var eventType:String;
     public var sink:Subject<T>;
