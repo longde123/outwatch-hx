@@ -556,6 +556,20 @@ class Dom {
         return ba;
     }
 
+    static public var inputString(get, null):StringEventEmitterBuilder;
+
+    static function get_inputString() {
+        var ba:StringEventEmitterBuilder = ("input");
+        return ba;
+    }
+
+
+    static public var inputBool(get, null):BoolEventEmitterBuilder;
+
+    static function get_inputBool() {
+        var ba:BoolEventEmitterBuilder = ("change");
+        return ba;
+    }
 
     static public var inputNumber(get, null):NumberEventEmitterBuilder;
 

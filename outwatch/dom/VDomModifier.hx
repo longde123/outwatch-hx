@@ -35,7 +35,7 @@ class VTree extends VNode {
             sel:nodeType,
             data: attributeObject,
             children:childProxies,
-            text:"",
+            text:null,
             elm:null
         }
     }
