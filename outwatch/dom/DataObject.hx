@@ -1,4 +1,5 @@
 package outwatch.dom;
+import Lambda;
 import outwatch.dom.VDomModifier.VNode;
 import snabbdom.dom.VirtualNodeDom;
 import snabbdom.VirtualNodes;
@@ -95,9 +96,13 @@ class DataObject {
         };
     }
 
-    public static function updateChildrens(childrens , childrens2 :Array<VNode>)  {
-        var childProxies:Array<VNodeProxy> = childrens2.map(function(c:VNode) return c.asProxy);
-        return childProxies;
+    public static function updateChildrens(  childrens2 :Array<VNode>)  {
+        var childProxies:Array<VNodeProxy> = childrens2.map(function(c:VNode) {
+            return c.asProxy;
+        });
+        return  (childProxies);
+
+        //return childrens.concat(childProxies);
     }
 
 

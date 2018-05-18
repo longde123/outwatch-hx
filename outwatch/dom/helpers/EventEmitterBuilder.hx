@@ -64,7 +64,7 @@ abstract AttributeBuilder(Attribute) {
         var tmp2 = new AttributeStreamReceiver(tmp.title, valueStream.map(function(b) {
             return new Attribute(tmp.title, Std.string(b));
         }));
-        return   tmp2 ;
+        return    tmp2;
     }
 
     @:from

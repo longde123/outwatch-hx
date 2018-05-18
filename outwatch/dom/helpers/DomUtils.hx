@@ -1,4 +1,6 @@
 package outwatch.dom.helpers;
+import outwatch.dom.DataObject;
+import rx.disposables.Composite;
 import rx.disposables.Binary;
 import snabbdom.dom.VirtualNodeDom;
 import snabbdom.dom.NativeNode;
@@ -45,23 +47,9 @@ class DomUtils {
                                           children:Array<VNode>):VNode {
 
         var eventHandlers = VDomProxy.emittersToSnabbDom(eventEmitters);
-        var childReceivers:Observable<Array<VNode>> = null;
+
         var adjustedAttrs = VDomProxy.attrsToSnabbDom(attributes);
-        if (childrenStreamReceivers != null&&childrenStreamReceivers.length>0) {
 
-            //    public var childrenStream:Observable<Array<VNode>>;
-            childReceivers = new CombineLatest( childrenStreamReceivers.map(function(o:ChildrenStreamReceiver) return o.childrenStream), function(c:Array<Array<VNode>>) {
-                var t:Array<VNode> = [];
-                for (cc in c) {
-                    t = t.concat(cc);
-                }
-                return t;
-            });
-        } else {
-            childReceivers = new CombineLatest(
-            childStreamReceivers.map(function(o:ChildStreamReceiver) return o.childStream), function(c:Array<VNode>) return c);
-
-        }
 
 
         var attributeReceivers:Observable<Array<Attribute>> = new CombineLatest(
@@ -71,7 +59,7 @@ class DomUtils {
 
         var dataObject:VirtualNodeData =
         if (childStreamReceivers != null || attributeStreamReceivers != null || childrenStreamReceivers != null) {
-            createReceiverDataObject(childReceivers, attributeReceivers, attributeStreamReceivers, adjustedAttrs, eventHandlers);
+            createReceiverDataObject(childStreamReceivers,childrenStreamReceivers, attributeReceivers, attributeStreamReceivers, adjustedAttrs, eventHandlers);
         } else {
             DataObject.createDataObject(adjustedAttrs, eventHandlers);
         }
@@ -79,13 +67,14 @@ class DomUtils {
         return new VTree(nodeType, children, dataObject);
     }
 
-    static public function createReceiverDataObject(childReceivers:Observable<Array<VNode>> ,
+    static public function createReceiverDataObject(  childStreamReceivers:Array<ChildStreamReceiver>,
+                                                      childrenStreamReceivers:Array<ChildrenStreamReceiver>,
                                                     attributeReceivers:Observable<Array<Attribute>>,
                                                     attributeStream:Array<AttributeStreamReceiver>,
                                                     attrs,
                                                     eventHandlers) {
-        var subscriptionPromise:Observable<ISubscription> = Observable.empty();
-        var insertHook = createInsertHook(childReceivers,attributeReceivers, subscriptionPromise);
+        var subscriptionPromise:Composite=Composite.create([]);
+        var insertHook = createInsertHook(childStreamReceivers,childrenStreamReceivers,attributeReceivers, subscriptionPromise);
         var deleteHook = createDestoryHook(subscriptionPromise);
 
         var dataObject:VirtualNodeData =
@@ -98,20 +87,37 @@ class DomUtils {
     }
 
 
-    static public function createInsertHook(childReceivers:Observable<Array<VNode>> ,
+    static public function createInsertHook(  childStreamReceivers:Array<ChildStreamReceiver>,
+                                              childrenStreamReceivers:Array<ChildrenStreamReceiver>,
                                             attributeReceivers:Observable<Array<Attribute>>,
-                                            subscriptionPromise:Observable<ISubscription>) {
+                                            subscriptionPromise:Composite) {
 
         return function(proxy:VNodeProxy) {
-            var subscription = childReceivers
-            .map(function(changable:Array<VNode>) {
-                var updatedNodeObj  = DataObject.updateChildrens(proxy.children, changable);
-                return PatchDom.vnode(proxy.sel, proxy.data, updatedNodeObj);
-            })
-            .observer(function(tuple:VNodeProxy) {
-                trace("createInsertHook childReceivers",proxy, tuple);
-                PatchDom.patch(proxy, tuple);
-            });
+            subscriptionPromise.clear();
+            var composite=subscriptionPromise;
+            if (childrenStreamReceivers != null&&childrenStreamReceivers.length>0) {
+                for(cr in childrenStreamReceivers){
+                    var s=cr.childrenStream.map(function(changable:Array<VNode>) {
+                        return PatchDom.vnode(cr.asProxy.sel,  cr.asProxy.data, DataObject.updateChildrens(changable));
+                    }).observer(function(tuple:VNodeProxy){
+                        PatchDom.patch(cr.asProxy, tuple);
+                        cr.asProxy=tuple;
+                    });
+                    composite.add(s);
+                }
+            } else {
+                for(c in childStreamReceivers){
+                    var s= c.childStream.map(function(changable:VNode) {
+                        return PatchDom.vnode(c.asProxy.sel,  c.asProxy.data,  DataObject.updateChildrens([changable]));
+                    })
+                    .observer(function(tuple:VNodeProxy){
+                        PatchDom.patch(c.asProxy, tuple);
+                        c.asProxy=tuple;
+                    });
+                    composite.add(s);
+                }
+            }
+
             var subscription2 = attributeReceivers
             .map(function(changable:Array<Attribute>) {
                 var updatedObj = DataObject.updateAttributes(proxy.data, VDomProxy.attrsToSnabbDom(changable));
@@ -121,18 +127,17 @@ class DomUtils {
                 trace("createInsertHook attributeReceivers");
                 PatchDom.patch(proxy, tuple);
             });
-            subscriptionPromise.last(Binary.create(subscription,subscription2));
+            composite.add(subscription2);
+
         }
 
     }
 
 
-    static public function createDestoryHook(subscriptionPromise:Observable<ISubscription>) {
+    static public function createDestoryHook(subscriptionPromise:Composite) {
         return function(proxy:VNodeProxy) {
-            var ss:ISubscription = subscriptionPromise.observer(function(s:ISubscription) {
-                s.unsubscribe();
-            });
-            ss.unsubscribe();
+
+            subscriptionPromise.unsubscribe();
 
         }
     }
@@ -145,7 +150,7 @@ class DomUtils {
             childrenReceivers:cast args.filter(function(a)return Std.is(a, ChildrenStreamReceiver)),
             attributes:cast args.filter(function(a)return Std.is(a, Attribute)),
             attributeReceivers:cast args.filter(function(a)return Std.is(a, AttributeStreamReceiver)),
-            children:cast args.filter(function(a)return Std.is(a, VNode))
+            children:cast args.filter(function(a)return Std.is(a, VNode)  ||  Std.is(a, ChildStreamReceiver) ||  Std.is(a, ChildrenStreamReceiver))
         }
         return __seperateModifiers;
 

@@ -113,19 +113,34 @@ class AttributeStreamReceiver extends VDomModifier {
         this.attributeStream = attributeStream;
     }
 }
-class ChildStreamReceiver extends VDomModifier {
+class ChildStreamReceiver extends VNode {
+
     public var childStream:Observable<VNode>;
 
     public function new(?childStream:Observable<VNode>) {
         super();
         this.childStream = childStream;
+        asProxy ={
+            sel:"div",
+            data:DataObject.createDataObject({},{}),
+            children:null,
+            text:null,
+            elm:null
+        }
     }
 }
-class ChildrenStreamReceiver extends VDomModifier {
+class ChildrenStreamReceiver extends VNode{
     public var childrenStream:Observable<Array<VNode>>;
 
     public function new(?childrenStream:Observable<Array<VNode>>) {
         super();
         this.childrenStream = childrenStream;
+        asProxy ={
+            sel:"div",
+            data:DataObject.createDataObject({},{}),
+            children:null,
+            text:null,
+            elm:null
+        }
     }
 }
