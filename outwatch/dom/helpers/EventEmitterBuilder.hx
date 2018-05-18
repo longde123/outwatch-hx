@@ -111,7 +111,7 @@ abstract BoolAttributeBuilder(Attribute) {
     }
 
     inline static function toEmptyIfFalse(b:Bool) {
-        return if (b) b + "" else "";
+        return if (b)   "true" else "false";
     }
 }
 
