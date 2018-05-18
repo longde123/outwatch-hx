@@ -108,7 +108,7 @@ class DomUtils {
             } else {
                 for(c in childStreamReceivers){
                     var s= c.childStream.map(function(changable:VNode) {
-                        return PatchDom.vnode(c.asProxy.sel,  c.asProxy.data,  DataObject.updateChildrens([changable]));
+                        return changable.asProxy;
                     })
                     .observer(function(tuple:VNodeProxy){
                         PatchDom.patch(c.asProxy, tuple);
